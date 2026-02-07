@@ -112,6 +112,27 @@ function getNoIntervalsFromRows(rows, pickKey) {
     .map(([a, b]) => `${formatHalfHour(a)}-${formatHalfHour(b)}`)
 }
 
+function getBoolIntervalsFromRows(rows, pickBool) {
+  if (!rows?.length) return []
+
+  const intervals = []
+  let startT = null
+  for (const r of rows) {
+    const on = Boolean(pickBool(r))
+    if (on && startT == null) startT = r.t
+    if (!on && startT != null) {
+      intervals.push([startT, r.t])
+      startT = null
+    }
+  }
+
+  if (startT != null) intervals.push([startT, 24])
+
+  return intervals
+    .filter(([a, b]) => b > a)
+    .map(([a, b]) => `${formatHalfHour(a)}-${formatHalfHour(b)}`)
+}
+
 function statusCellBg(statusKey, baseColor) {
   const k = normalizeStatusKey(statusKey)
   if (k === 'yes') return { background: `${baseColor}33` }
@@ -240,6 +261,7 @@ export default function App() {
         home: [],
         medic: [],
         reserve: [],
+        overlap: [],
       }
     }
 
@@ -247,6 +269,7 @@ export default function App() {
       home: getNoIntervalsFromRows(chartData, (r) => r.homeKey),
       medic: getNoIntervalsFromRows(chartData, (r) => r.medicKey),
       reserve: getNoIntervalsFromRows(chartData, (r) => r.reserveKey),
+      overlap: getBoolIntervalsFromRows(chartData, (r) => r.overlapNo),
     }
   }, [chartData])
 
@@ -277,6 +300,15 @@ export default function App() {
           layout={layout}
           margin={{ top: 10, right: 12, left: -18, bottom: 0 }}
         >
+          <defs>
+            <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="1.6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
           <CartesianGrid stroke="rgba(148,163,184,0.10)" vertical={false} />
 
           {chartData
@@ -384,26 +416,61 @@ export default function App() {
           <Line
             type="stepAfter"
             dataKey="home"
+            stroke="rgba(255,255,255,0.22)"
+            strokeWidth={6}
+            dot={false}
+            isAnimationActive={false}
+          />
+          <Line
+            type="stepAfter"
+            dataKey="home"
             stroke={GROUPS[0].color}
-            strokeWidth={2}
+            strokeWidth={2.8}
             dot={false}
             name={GROUPS[0].name}
+            strokeDasharray=""
+            isAnimationActive={false}
+            style={{ filter: 'url(#lineGlow)' }}
+          />
+
+          <Line
+            type="stepAfter"
+            dataKey="medic"
+            stroke="rgba(255,255,255,0.18)"
+            strokeWidth={6}
+            dot={false}
+            isAnimationActive={false}
           />
           <Line
             type="stepAfter"
             dataKey="medic"
             stroke={GROUPS[1].color}
-            strokeWidth={2}
+            strokeWidth={2.8}
             dot={false}
             name={GROUPS[1].name}
+            strokeDasharray="7 4"
+            isAnimationActive={false}
+            style={{ filter: 'url(#lineGlow)' }}
+          />
+
+          <Line
+            type="stepAfter"
+            dataKey="reserve"
+            stroke="rgba(255,255,255,0.18)"
+            strokeWidth={6}
+            dot={false}
+            isAnimationActive={false}
           />
           <Line
             type="stepAfter"
             dataKey="reserve"
             stroke={GROUPS[2].color}
-            strokeWidth={2}
+            strokeWidth={2.8}
             dot={false}
             name={GROUPS[2].name}
+            strokeDasharray="2 3"
+            isAnimationActive={false}
+            style={{ filter: 'url(#lineGlow)' }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -489,6 +556,24 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+
+                <div className="grid grid-cols-[110px_1fr] items-center gap-3">
+                  <div className="text-[11px] font-medium text-slate-500">Час</div>
+                  <div className="flex">
+                    {Array.from({ length: 48 }, (_, i) => {
+                      const isHour = i % 2 === 0
+                      const hour = i / 2
+                      return (
+                        <div
+                          key={`tick-${i}`}
+                          className="flex-1 text-center text-[10px] leading-none text-slate-500"
+                        >
+                          {isHour ? pad2(hour) : ''}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-3 text-[11px] text-slate-500">
@@ -500,7 +585,7 @@ export default function App() {
             <div className="h-[560px] md:hidden">{renderChart({ layout: 'vertical' })}</div>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
             <div className="glass rounded-2xl p-3">
               <div className="text-xs font-medium text-slate-300">
                 Дім — години відключень
@@ -523,6 +608,14 @@ export default function App() {
               </div>
               <div className="mt-1 text-sm text-slate-100">
                 {outageLines.reserve.length ? outageLines.reserve.join(', ') : 'Без відключень'}
+              </div>
+            </div>
+            <div className="glass rounded-2xl p-3">
+              <div className="text-xs font-medium text-slate-300">
+                Робота (перетин) — без світла
+              </div>
+              <div className="mt-1 text-sm text-slate-100">
+                {outageLines.overlap.length ? outageLines.overlap.join(', ') : 'Без відключень'}
               </div>
             </div>
           </div>
