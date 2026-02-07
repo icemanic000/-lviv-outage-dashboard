@@ -320,7 +320,7 @@ export default function App() {
                 x2={isVertical ? 2 : r.t + 0.5}
                 y1={isVertical ? r.t : undefined}
                 y2={isVertical ? r.t + 0.5 : undefined}
-                fill="rgba(244,63,94,0.12)"
+                fill="rgba(244,63,94,0.22)"
                 strokeOpacity={0}
               />
             ))}
@@ -404,7 +404,7 @@ export default function App() {
                     </div>
                   </div>
                   {p.overlapNo && (
-                    <div className="mt-2 rounded-lg bg-rose-500/10 px-2 py-1 text-rose-200 ring-1 ring-rose-400/20">
+                    <div className="mt-2 rounded-lg bg-rose-500/20 px-2 py-1 text-rose-100 ring-1 ring-rose-400/30">
                       Перетин: Медик + Резерв без світла
                     </div>
                   )}
@@ -507,15 +507,15 @@ export default function App() {
                   <span className="text-slate-400">({g.key})</span>
                 </div>
               ))}
-              <div className="inline-flex items-center gap-2 rounded-full bg-rose-500/10 px-3 py-1 text-rose-200 ring-1 ring-rose-400/20">
-                <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-rose-500/40 px-3 py-1 text-rose-200 ring-1 ring-rose-400/40">
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
                 Перетин: робота без світла
               </div>
             </div>
           </div>
 
           <div className="mt-5">
-            <div className="glass rounded-2xl p-3">
+            <div className="glass hidden rounded-2xl p-3 md:block">
               <div className="grid grid-cols-1 gap-3">
                 {GROUPS.map((g) => (
                   <div key={g.key} className="grid grid-cols-[110px_1fr] items-center gap-3">
@@ -549,7 +549,7 @@ export default function App() {
                         key={`overlap-${r.t}`}
                         className="h-full flex-1"
                         style={{
-                          background: r.overlapNo ? 'rgba(244,63,94,0.45)' : 'rgba(148,163,184,0.10)',
+                          background: r.overlapNo ? 'rgba(244,63,94,0.70)' : 'rgba(148,163,184,0.10)',
                         }}
                         title={r.overlapNo ? `${r.rangeLabel} • Перетин: робота без світла` : r.rangeLabel}
                       />
